@@ -6,7 +6,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.statsdto.HitDto;
-import ru.practicum.statsdto.HitsDto;
 import ru.practicum.statsdto.Stat;
 import ru.practicum.statsservice.model.App;
 import ru.practicum.statsservice.storage.AppRepo;
@@ -16,7 +15,7 @@ import ru.practicum.statsservice.util.HitMapper;
 import ru.practicum.statsservice.util.exception.InvalidPeriodException;
 
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
 
 @Service
 @Slf4j
@@ -32,14 +31,6 @@ public class StatsServiceImpl implements StatsService {
 
         statsRepo.save(HitMapper.toHit(dto, app));
         log.info("Saved request ip = {} by url = {}", dto.getIp(), dto.getUri());
-    }
-
-    @Override
-    public void saveRequest(HitsDto dto) {
-        App app = getOrCreate(dto.getApp());
-
-        statsRepo.saveAll(HitMapper.toHit(dto, app));
-        log.info("Saved request ip = {} by url = {}", dto.getIp(), dto.getUris());
     }
 
     @Override

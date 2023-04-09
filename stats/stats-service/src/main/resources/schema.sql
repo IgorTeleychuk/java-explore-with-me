@@ -12,5 +12,5 @@ CREATE table IF NOT EXISTS hits(
     app_id bigint REFERENCES apps (app_id) ON DELETE CASCADE,
     uri varchar NOT NULL,
     ip varchar NOT NULL,
-    timestamp timestamp NOT NULL
+    timestamp timestamp WITHOUT TIME ZONE NOT NULL
 );
