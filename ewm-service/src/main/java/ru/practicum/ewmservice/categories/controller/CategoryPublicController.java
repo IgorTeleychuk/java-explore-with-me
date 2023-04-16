@@ -1,7 +1,6 @@
 package ru.practicum.ewmservice.categories.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.categories.dto.CategoryDto;
@@ -13,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/categories")
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @Validated
 public class CategoryPublicController {
     private final CategoryService categoryService;

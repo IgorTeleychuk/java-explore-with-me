@@ -1,7 +1,6 @@
 package ru.practicum.ewmservice.compilation.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.compilation.dto.CompilationDto;
@@ -13,7 +12,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/compilations")
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @Validated
 public class CompilationPublicController {
     private final CompilationService compilationService;

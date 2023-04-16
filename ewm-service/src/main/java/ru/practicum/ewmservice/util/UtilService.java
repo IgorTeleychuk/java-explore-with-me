@@ -1,8 +1,8 @@
 package ru.practicum.ewmservice.util;
 
+import com.querydsl.core.types.Predicate;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -33,13 +33,12 @@ import ru.practicum.ewmservice.util.storage.QPredicates;
 import ru.practicum.statsclient.StatsClient;
 
 import java.util.*;
-import com.querydsl.core.types.Predicate;
 import java.util.stream.Collectors;
 
 import static ru.practicum.ewmservice.event.model.QEvent.event;
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @Slf4j
 @Transactional(readOnly = true)
 public class UtilService {
@@ -57,63 +56,63 @@ public class UtilService {
     public EventRequestStat findRequestStatOrThrow(EventRequestStats stat) {
         return eventRequestStatsRepo.findByName(stat.name())
                 .orElseThrow(() -> new EntityNotExistException(
-                        String.format("Статус %s не существует", stat))
+                        String.format("Status %s does not exist", stat))
                 );
     }
 
     public Event findPublicEventOrThrow(long eventId) {
         return eventRepo.findPublicById(eventId)
                 .orElseThrow(() -> new EntityNotExistException(
-                        String.format("Событие с id = %s не существует", eventId))
+                        String.format("Event with Id = %s does not exist", eventId))
                 );
     }
 
     public Event findEventOrThrow(long eventId) {
         return eventRepo.findById(eventId)
                 .orElseThrow(() -> new EntityNotExistException(
-                        String.format("Событие с id = %s не существует", eventId))
+                        String.format("Event with Id = %s does not exist", eventId))
                 );
     }
 
     public User findUserOrThrow(long userId) {
         return userRepo.findById(userId)
                 .orElseThrow(() -> new EntityNotExistException(
-                        String.format("Пользователь c id = %s не существует", userId))
+                        String.format("User with Id = %s does not exist", userId))
                 );
     }
 
     public Category findCategoryOrThrow(long categoryId) {
         return categoryRepo.findById(categoryId)
                 .orElseThrow(() -> new EntityNotExistException(
-                        String.format("Категория c id = %s не существует", categoryId))
+                        String.format("Category with Id = %s does not exist", categoryId))
                 );
     }
 
     public EventState findEventStateOrThrow(EventStates state) {
         return eventStateRepo.findByName(state.toString())
                 .orElseThrow(() -> new EntityNotExistException(
-                        String.format("Статус c name = %s не существует", state))
+                        String.format("Status with name = %s does not exist", state))
                 );
     }
 
     public EventRequestStat findStatOrThrow(EventRequestStats stat) {
         return eventRequestStatsRepo.findByName(stat.name())
                 .orElseThrow(() -> new EntityNotExistException(
-                        String.format("Статус %s не существует", stat.name()))
+                        String.format("Status %s does not exist", stat.name()))
                 );
     }
 
     public EventRequest findEventRequestOrThrow(long requestId) {
         return eventRequestRepo.findById(requestId)
                 .orElseThrow(() -> new EntityNotExistException(
-                        String.format("Запрос на участие с id = %s не существует", requestId))
+                        String.format("Request for participation with Id = %s does not exist", requestId))
                 );
     }
 
     public Compilation findCompilationOrThrow(long compId) {
         return compilationRepo.findById(compId)
                 .orElseThrow(() -> new EntityNotExistException(
-                        String.format("Подборка с id = %s не существует", compId))
+                        String.format("Compilation with Id = %s does not exist", compId))
                 );
     }
 

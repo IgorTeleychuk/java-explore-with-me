@@ -2,7 +2,6 @@ package ru.practicum.ewmservice.event.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @Transactional(readOnly = true)
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class EventPublicServiceImpl implements EventPublicService {
     private final StatsClient statsClient;
     private final UtilService utilService;
@@ -46,13 +45,13 @@ public class EventPublicServiceImpl implements EventPublicService {
         Pageable pageable = eventService.createPageableBySort(sort, from, size);
 
         events = utilService.findByFilter(pageable, filter);
-        log.info("Возвращаю коллекцию событий по запросу");
+        log.info("Returning list of Events by request");
 
         confirmedRequests = utilService.findConfirmedRequests(events);
         views = utilService.findViews(events);
 
         statsClient.saveHits(events.stream().map(Event::getId).collect(Collectors.toList()), ip);
-        log.info("Сохраняю в сервере статистики");
+        log.info("Saving in statistic server");
 
         return EventMapper.toEventShortDto(events, confirmedRequests, views);
     }
@@ -63,13 +62,13 @@ public class EventPublicServiceImpl implements EventPublicService {
         List<EventRequest> confirmedRequests;
 
         Event event = utilService.findPublicEventOrThrow(eventId);
-        log.info("Возвращаю событие c id = {} ", eventId);
+        log.info("Returning the event with Id = {} ", eventId);
 
         confirmedRequests = utilService.findConfirmedRequests(event);
         views = utilService.findViews(eventId);
 
         statsClient.saveHit(eventId, ip);
-        log.info("Сохраняю в сервере статистики");
+        log.info("Saving in statistic server");
 
         return EventMapper.toEventFullDto(event, confirmedRequests, views, Map.of());
     }

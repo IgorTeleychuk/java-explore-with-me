@@ -19,7 +19,7 @@ public class AdminComment {
     @JoinColumn(name = "event_id")
     private Event event;
     @Column(name = "created")
-    private LocalDateTime createdOn; // Дата и время создания комментария
+    private LocalDateTime createdOn; // Date and time the comment was created
     @Column(name = "text")
-    private String text; // Текст комментария
+    private String text; // text of comment
 }

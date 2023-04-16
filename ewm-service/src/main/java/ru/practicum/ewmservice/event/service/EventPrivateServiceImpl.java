@@ -2,7 +2,6 @@ package ru.practicum.ewmservice.event.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmservice.categories.model.Category;
@@ -34,7 +33,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 @Transactional(readOnly = true)
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class EventPrivateServiceImpl implements EventPrivateService {
     private final EventRepo eventRepo;
     private final UtilService utilService;
@@ -53,7 +52,7 @@ public class EventPrivateServiceImpl implements EventPrivateService {
         event.setState(utilService.findEventStateOrThrow(EventStates.PENDING));
         event.setCreatedOn(LocalDateTime.now());
         event = eventRepo.save(event);
-        log.info("Создано событие c id = {} ", event.getId());
+        log.info("Created Event with Id = {} ", event.getId());
 
         return EventMapper.toEventFullDto(event, List.of(), Map.of(), Map.of());
     }
@@ -75,7 +74,7 @@ public class EventPrivateServiceImpl implements EventPrivateService {
         confirmedRequests = utilService.findConfirmedRequests(event);
         views = utilService.findViews(eventId);
         comments = utilService.findByEventId(List.of(event));
-        log.info("Обновлено событие c id = {} юзером с id = {}", eventId, userId);
+        log.info("Updated Event with Id = {} User with Id = {}", eventId, userId);
 
         return EventMapper.toEventFullDto(event, confirmedRequests, views, comments); // todo map!
     }
@@ -89,7 +88,7 @@ public class EventPrivateServiceImpl implements EventPrivateService {
         List<Event> events = eventRepo.findAllByInitiator(initiator);
         confirmedRequests = utilService.findConfirmedRequests(events);
         views = utilService.findViews(events);
-        log.info("Сформирован список ивентов пользователя c id = {} ", initiator);
+        log.info("Created Event list for User with Id = {} ", initiator);
 
         return EventMapper.toEventShortDto(events, confirmedRequests, views);
     }
@@ -106,7 +105,7 @@ public class EventPrivateServiceImpl implements EventPrivateService {
         views = utilService.findViews(eventId);
         comments = utilService.findByEventId(List.of(event));
 
-        log.info("Возвращаю событие c id = {} ", eventId);
+        log.info("Returned Event with Id = {} ", eventId);
 
         return EventMapper.toEventFullDto(event, confirmedRequests, views, comments); // todo map!
     }
@@ -119,7 +118,7 @@ public class EventPrivateServiceImpl implements EventPrivateService {
         checkInitiator(user, event);
 
         requests = findEventRequestsByEvent(event);
-        log.info("Возвращаю перечень запросов на участие в событии c id = {} ", eventId);
+        log.info("Returned a list of requests to participate in the Event with Id = {} ", eventId);
 
         return EventRequestMapper.toEventRequestDto(requests);
     }
@@ -195,7 +194,7 @@ public class EventPrivateServiceImpl implements EventPrivateService {
     private void checkInitiator(User user, Event event) {
         if (!Objects.equals(event.getInitiator().getId(), user.getId())) {
             throw new OperationFailedException(
-                    "Только создатель имеет право редактировать событие и получать запросы на участие"
+                    "Only the creator has the right to edit the event and receive requests for participation "
             );
         }
     }
@@ -203,7 +202,7 @@ public class EventPrivateServiceImpl implements EventPrivateService {
     private void checkUpdateAvailable(Event event) {
         if (event.getState().getName().equals(EventStates.PUBLISHED.name())) {
             throw new OperationFailedException(
-                    "изменить можно только отмененные события или события в состоянии ожидания модерации "
+                    "You can only change canceled events or events in the state of waiting for moderation "
             );
         }
     }
@@ -211,7 +210,8 @@ public class EventPrivateServiceImpl implements EventPrivateService {
     private void checkProcessRequestsAvailable(Event event, List<EventRequest> confirmedRequests) {
         if (event.getParticipantLimit() - confirmedRequests.size() < 1) {
             throw new OperationFailedException(
-                    "нельзя подтвердить заявку, если уже достигнут лимит по заявкам на данное событие "
+                    "It is not possible to confirm the application if the limit on applications for" +
+                            " this event has already been reached "
             );
         }
     }

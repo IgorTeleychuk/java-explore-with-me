@@ -172,11 +172,11 @@ public class ErrorHandler extends ResponseEntityExceptionHandler {
     @Getter
     @RequiredArgsConstructor
     private static class ExceptionDto {
-        private final String message; // Сообщение об ошибке
-        private final String reason; // Общее описание причины ошибки
-        private final String status; // Код статуса HTTP-ответа
+        private final String message; // Error Message
+        private final String reason; // General description of the error cause
+        private final String status; // HTTP response status code
         @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
         @JsonProperty("timestamp")
-        private final LocalDateTime timestamp; // Дата и время когда произошла ошибка (в формате "yyyy-MM-dd HH:mm:ss")
+        private final LocalDateTime timestamp; // Date and time when the error occurred (format "yyyy-MM-dd HH:mm:ss")
     }
 }

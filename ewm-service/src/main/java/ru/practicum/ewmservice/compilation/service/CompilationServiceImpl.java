@@ -2,7 +2,6 @@ package ru.practicum.ewmservice.compilation.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,7 +20,7 @@ import java.util.*;
 @Service
 @Slf4j
 @Transactional(readOnly = true)
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class CompilationServiceImpl implements CompilationService {
     private final EventRepo eventRepo;
     private final UtilService utilService;
@@ -40,7 +39,7 @@ public class CompilationServiceImpl implements CompilationService {
                 new ArrayList<>(compilation.getEvents())
         );
         views = getViews(compilation);
-        log.info("Создана подборка c id = {} ", compilation.getId());
+        log.info("Created Compilation with Id = {} ", compilation.getId());
 
         return CompilationsMapper.toCompilationDto(compilation, confirmedRequests, views);
     }
@@ -62,7 +61,7 @@ public class CompilationServiceImpl implements CompilationService {
                 new ArrayList<>(compilation.getEvents())
         );
         views = getViews(compilation);
-        log.info("Обновлена подборка c id = {} ", compilation.getId());
+        log.info("Updated Compilation with Id = {} ", compilation.getId());
 
         return CompilationsMapper.toCompilationDto(compilation, confirmedRequests, views);
     }
@@ -79,7 +78,7 @@ public class CompilationServiceImpl implements CompilationService {
                 new ArrayList<>(compilation.getEvents())
         );
         views = getViews(compilation);
-        log.info("Удалена подборка c id = {} ", compilation.getId());
+        log.info("Deleted Compilation with Id = {} ", compilation.getId());
 
         return CompilationsMapper.toCompilationDto(compilation, confirmedRequests, views);
     }
@@ -90,14 +89,14 @@ public class CompilationServiceImpl implements CompilationService {
         Map<Long, Integer> views;
         Map<Event, List<EventRequest>> confirmedRequests;
         List<Compilation> compilations;
-        Pageable pageable = utilService.createPageable("id", from, size);
+        Pageable pageable = utilService.createPageable("Id", from, size);
 
         if (pinned != null) {
             compilations = findAllByPinned(pinned, pageable);
-            log.info("Возвращаю коллекцию подборок событий по запросу");
+            log.info("Returning a collection of collections of events on request");
         } else {
             compilations = findAll(pageable);
-            log.info("Возвращаю коллекцию подборок событий по запросу");
+            log.info("Returning a collection of collections of events on request");
         }
 
         compilations.forEach(compilation -> events.addAll(compilation.getEvents()));
@@ -117,7 +116,7 @@ public class CompilationServiceImpl implements CompilationService {
                 new ArrayList<>(compilation.getEvents())
         );
         views = getViews(compilation);
-        log.info("Возвращаю подборку c id = {} ", compilation.getId());
+        log.info("Returned Compilation with Id = {} ", compilation.getId());
 
         return CompilationsMapper.toCompilationDto(compilation, confirmedRequests, views);
     }

@@ -20,35 +20,35 @@ public class Event {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "annotation")
-    private String annotation; // Краткое описание
+    private String annotation; // Short description
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "category_id")
     private Category category;
     @Column(name = "created_on")
-    private LocalDateTime createdOn; // Дата и время создания события (в формате "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime createdOn; // Date and time the event was created (format "yyyy-MM-dd HH:mm:ss")
     @Column(name = "description")
-    private String description; // Полное описание события
+    private String description; // Full description
     @Column(name = "event_date")
-    private LocalDateTime eventDate; // Дата и время на которые намечено событие (в формате "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime eventDate; // The date and time for which the event is scheduled (format "yyyy-MM-dd HH:mm:ss")
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "initiator_id")
     private User initiator; // Создатель
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "location_id")
-    private Location location; //Координаты места проведения
+    private Location location; //Coordinates of the venue
     @Column(name = "paid")
-    private Boolean paid; // Нужно ли оплачивать участие
+    private Boolean paid; // Do I need to pay for participation
     @Column(name = "participant_limit")
-    private Integer participantLimit; // Ограничение на количество участников. Значение 0 - означает отсутствие ограничения
+    private Integer participantLimit; // Limit on the number of participants. A value of 0 means that there is no restriction
     @Column(name = "published_on")
-    private LocalDateTime publishedOn; // Дата и время публикации события (в формате "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime publishedOn; // Date and time of publication of the event (format "yyyy-MM-dd HH:mm:ss")
     @Column(name = "request_moderation")
-    private Boolean requestModeration; // Нужна ли пре-модерация заявок на участие
+    private Boolean requestModeration; // Do I need early moderation of applications for participation
     @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
     @JoinColumn(name = "state_id")
-    private EventState state;// Список состояний жизненного цикла события
+    private EventState state;// List of event lifecycle states
     @Column(name = "title")
-    private String title; // Заголовок
+    private String title; // Title
     @ManyToMany(mappedBy = "events")
-    private Set<Compilation> compilations; // Подборки
+    private Set<Compilation> compilations; // Compilations
 }

@@ -1,14 +1,12 @@
 package ru.practicum.ewmservice.event.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.event.dto.EventFullDto;
 import ru.practicum.ewmservice.event.dto.EventIncomeDto;
 import ru.practicum.ewmservice.event.model.EventStates;
 import ru.practicum.ewmservice.event.service.EventAdminService;
-import ru.practicum.ewmservice.util.validation.AdminValidationGroup;
 import ru.practicum.ewmservice.util.validation.UpdateValidationGroup;
 
 import javax.validation.constraints.Positive;
@@ -18,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/admin/events")
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @Validated
 public class EventAdminController {
     private final EventAdminService eventAdminServiceService;

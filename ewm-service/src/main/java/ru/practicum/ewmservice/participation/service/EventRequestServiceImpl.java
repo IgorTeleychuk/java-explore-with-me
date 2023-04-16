@@ -2,7 +2,6 @@ package ru.practicum.ewmservice.participation.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmservice.event.model.Event;
@@ -22,7 +21,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 @Transactional(readOnly = true)
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class EventRequestServiceImpl implements EventRequestService {
     private final EventRequestRepo eventRequestRepo;
     private final UtilService utilService;
@@ -38,7 +37,7 @@ public class EventRequestServiceImpl implements EventRequestService {
         checkCreateAvailability(user, event, confirmedRequests);
 
         eventRequest = save(user, event);
-        log.info("Создан запрос c id = {} ", eventRequest.getId());
+        log.info("Creating Request with Id = {} ", eventRequest.getId());
 
         return EventRequestMapper.toEventRequestDto(eventRequest);
     }
@@ -49,7 +48,7 @@ public class EventRequestServiceImpl implements EventRequestService {
 
         User user = utilService.findUserOrThrow(userId);
         eventRequests = eventRequestRepo.findAllByRequester(user);
-        log.info("Создан список запросов пользователя c id = {} ", userId);
+        log.info("Creating list of Requests for User with Id = {} ", userId);
 
         return EventRequestMapper.toEventRequestDto(eventRequests);
     }
@@ -62,7 +61,7 @@ public class EventRequestServiceImpl implements EventRequestService {
 
         checkCancelAvailability(user, request);
         request.setStatus(utilService.findStatOrThrow(EventRequestStats.CANCELED));
-        log.info("Отменен запрос c id = {} ", requestId);
+        log.info("Cancelling Request with Id = {} ", requestId);
 
         return EventRequestMapper.toEventRequestDto(request);
     }
@@ -86,22 +85,22 @@ public class EventRequestServiceImpl implements EventRequestService {
     private void checkCreateAvailability(User user, Event event, List<EventRequest> confirmedRequests) {
         if (Objects.equals(event.getInitiator().getId(), user.getId())) {
             throw new OperationFailedException(
-                    "инициатор события не может добавить запрос на участие в своём событии"
+                    "The initiator of the event cannot add a request to participate in his event "
             );
         }
         if (event.getState().getId() != 2) {
             throw new OperationFailedException(
-                    "нельзя участвовать в неопубликованном событии"
+                    "You cannot participate in an unpublished event "
             );
         }
         if (confirmedRequests.size() == event.getParticipantLimit()) {
             throw new OperationFailedException(
-                    "достигнут лимит запросов на участие"
+                    "The limit of participation requests has been reached "
             );
         }
         if (eventRequestRepo.checkRequest(user.getId(), event.getId()) != 0) {
             throw new OperationFailedException(
-                    "Невозможно добавить повторный запрос"
+                    "Unable to add a repeat request "
             );
         }
     }
@@ -109,7 +108,7 @@ public class EventRequestServiceImpl implements EventRequestService {
     private void checkCancelAvailability(User user, EventRequest request) {
         if (!Objects.equals(request.getRequester().getId(), user.getId())) {
             throw new OperationFailedException(
-                    "только инициатор запроса может отменить свой запрос"
+                    "Only the requester can cancel his request "
             );
         }
     }

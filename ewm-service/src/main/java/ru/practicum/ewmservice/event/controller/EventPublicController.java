@@ -1,7 +1,6 @@
 package ru.practicum.ewmservice.event.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.event.dto.EventFullDto;
@@ -17,7 +16,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping(path = "/events")
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 @Validated
 public class EventPublicController {
     private final EventPublicService eventPublicService;

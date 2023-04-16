@@ -2,7 +2,6 @@ package ru.practicum.ewmservice.event.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,12 +21,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.toMap;
-
 @Service
 @Slf4j
 @Transactional(readOnly = true)
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class EventAdminServiceImpl implements EventAdminService {
     private final UtilService utilService;
     private final EventSuperService eventService;
@@ -47,7 +44,7 @@ public class EventAdminServiceImpl implements EventAdminService {
 
         comments = eventService.saveAdminComment(List.of(dto), List.of(event));
 
-        log.info("Обновлено событие c id = {} администратором", eventId);
+        log.info("Updated Event with Id = {} administrator", eventId);
         return EventMapper.toEventFullDto(event, confirmedRequests, views, comments);
     }
 
@@ -71,7 +68,7 @@ public class EventAdminServiceImpl implements EventAdminService {
         confirmedRequests = utilService.findConfirmedRequests(events);
         comments = utilService.findByEventId(events);
 
-        log.info("Возвращаю список событий по запросу администратора");
+        log.info("Returned a list of events at the request of the administrator");
         return EventMapper.toEventFullDto(events, confirmedRequests, views, comments);
     }
 

@@ -2,7 +2,6 @@ package ru.practicum.ewmservice.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,7 +19,7 @@ import java.util.List;
 @Service
 @Slf4j
 @Transactional(readOnly = true)
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
     private final UserRepo userRepo;
     private final UtilService utilService;
@@ -29,7 +28,7 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public UserDto create(UserIncomeDto dto) {
         User user = userRepo.save(UserMapper.toUser(dto));
-        log.info("Создан пользователь c id = {} ", user.getId());
+        log.info("Created User with Id = {} ", user.getId());
         return UserMapper.toUserDto(user);
     }
 
@@ -40,15 +39,15 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(
                 from == 0 ? 0 : (from / size),
                 size,
-                Sort.by(Sort.Direction.ASC, "id")
+                Sort.by(Sort.Direction.ASC, "Id")
         );
 
         if (ids == null) {
             users = userRepo.findAll(pageable).toList();
-            log.info("Возвращен список всех пользователей");
+            log.info("Returned a list of all users");
         } else {
             users = userRepo.findAllByIdIn(ids, pageable).toList();
-            log.info("Возвращен список всех пользователей c id = {} ", ids);
+            log.info("Returned a list of all users with Id = {} ", ids);
         }
 
         return UserMapper.toUserDto(users);
@@ -59,6 +58,6 @@ public class UserServiceImpl implements UserService {
     public void delete(long userId) {
         utilService.findUserOrThrow(userId);
         userRepo.deleteById(userId);
-        log.info("Удален пользователь c id = {} ", userId);
+        log.info("Removed User with Id = {} ", userId);
     }
 }

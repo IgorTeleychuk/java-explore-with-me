@@ -2,7 +2,6 @@ package ru.practicum.ewmservice.categories.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -22,7 +21,7 @@ import java.util.Objects;
 @Service
 @Slf4j
 @Transactional(readOnly = true)
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {
     private final UtilService utilService;
     private final CategoryRepo categoryRepo;
@@ -32,7 +31,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Transactional
     public CategoryDto create(CategoryDto dto) {
         Category category = save(dto);
-        log.info("Создана категория c id = {} ", category.getId());
+        log.info("Create Category with Id = {} ", category.getId());
 
         return CategoryMapper.toCategoryDto(category);
     }
@@ -43,7 +42,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = utilService.findCategoryOrThrow(catId);
 
         if (!Objects.equals(dto.getName(), category.getName())) category.setName(dto.getName());
-        log.info("Обновлена категория c id = {} ", category.getId());
+        log.info("Update Category with Id = {} ", category.getId());
 
         return CategoryMapper.toCategoryDto(category);
     }
@@ -54,7 +53,7 @@ public class CategoryServiceImpl implements CategoryService {
         Category category = utilService.findCategoryOrThrow(catId);
         checkDeleteAvailable(category);
         categoryRepo.deleteById(catId);
-        log.info("Удален пользователь c id = {} ", catId);
+        log.info("Delete User with Id = {} ", catId);
     }
 
     @Override
@@ -64,11 +63,11 @@ public class CategoryServiceImpl implements CategoryService {
         Pageable pageable = PageRequest.of(
                 from == 0 ? 0 : (from / size),
                 size,
-                Sort.by(Sort.Direction.ASC, "id")
+                Sort.by(Sort.Direction.ASC, "Id")
         );
 
         categories = categoryRepo.findAll(pageable).toList();
-        log.info("Возвращен список всех категорий");
+        log.info("Returned a list of all categories");
 
         return CategoryMapper.toCategoryDto(categories);
     }
@@ -76,7 +75,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryDto get(long catId) {
         Category category = utilService.findCategoryOrThrow(catId);
-        log.info("Возвращена категория c id = {} ", catId);
+        log.info("Returned Category with Id = {} ", catId);
         return CategoryMapper.toCategoryDto(category);
     }
 
@@ -87,7 +86,7 @@ public class CategoryServiceImpl implements CategoryService {
     private void checkDeleteAvailable(Category category) {
         if (!eventRepo.findAllByCategory(category).isEmpty()) {
             throw new OperationFailedException(
-                    String.format("Невозможно удалить категорию id = %s. Существуют события, связанные с категорией",
+                    String.format("Don't possible delete Category Id = %s. There are events related to the category",
                             category.getId())
             );
         }

@@ -1,7 +1,6 @@
 package ru.practicum.ewmservice.event.service;
 
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import ru.practicum.ewmservice.event.dto.EventIncomeDto;
@@ -25,7 +24,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor(onConstructor_ = @Autowired)
+@RequiredArgsConstructor
 public class EventSuperService {
     private final UtilService utilService;
     private final LocationRepo locationRepo;
@@ -74,11 +73,11 @@ public class EventSuperService {
             event.setPublishedOn(LocalDateTime.now());
         } else if (event.getEventDate().isBefore(LocalDateTime.now().plusHours(1))) {
             throw new OperationFailedException(
-                    "Невозможно опубликовать мероприятие, если время начала меньше чем через час"
+                    "It is not possible to publish an event if the start time is less than an hour later "
             );
         } else if (event.getState().getId() != 1) {
             throw new OperationFailedException(
-                    "Невозможно опубликовать мероприятие, не ожидающее публикацию"
+                    "It is not possible to publish an event that is not awaiting publication "
             );
         }
     }
@@ -88,7 +87,7 @@ public class EventSuperService {
             event.setState(utilService.findEventStateOrThrow(EventStates.CANCELED));
         } else {
             throw new OperationFailedException(
-                    "Невозможно отклонить опубликованное мероприятие"
+                    "It is not possible to reject a published event "
             );
         }
     }
@@ -119,7 +118,8 @@ public class EventSuperService {
         if (dto.getEventDate() != null
                 && dto.getEventDate().isBefore(LocalDateTime.now().plusHours(hours))) {
             throw new EventDateValidationException(
-                    String.format("Время между началом события и текущем моментом не может быть меньше %s часов", hours)
+                    String.format("The time between the start of the event and the current moment " +
+                            "cannot be less than %s hours", hours)
             );
         }
     }
