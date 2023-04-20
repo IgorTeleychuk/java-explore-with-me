@@ -6,138 +6,131 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.ewmservice.compilation.dto.CompilationDto;
-import ru.practicum.ewmservice.compilation.dto.CompilationIncomeDto;
+import ru.practicum.ewmservice.compilation.dto.NewCompilationDto;
+import ru.practicum.ewmservice.compilation.dto.UpdateCompilationRequest;
+import ru.practicum.ewmservice.compilation.mapper.CompilationMapper;
 import ru.practicum.ewmservice.compilation.model.Compilation;
-import ru.practicum.ewmservice.compilation.storage.CompilationRepo;
+import ru.practicum.ewmservice.compilation.repository.CompilationRepository;
+import ru.practicum.ewmservice.event.dto.EventShortDto;
 import ru.practicum.ewmservice.event.model.Event;
-import ru.practicum.ewmservice.event.storage.EventRepo;
-import ru.practicum.ewmservice.participation.model.EventRequest;
-import ru.practicum.ewmservice.util.UtilService;
-import ru.practicum.ewmservice.util.mappers.CompilationsMapper;
+import ru.practicum.ewmservice.event.service.EventService;
+import ru.practicum.ewmservice.exception.NotFoundException;
 
 import java.util.*;
 
 @Service
-@Slf4j
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
+@Slf4j
 public class CompilationServiceImpl implements CompilationService {
-    private final EventRepo eventRepo;
-    private final UtilService utilService;
-    private final CompilationRepo compilationRepo;
+    private final EventService eventService;
+    private final CompilationRepository compilationRepository;
+    private final CompilationMapper compilationMapper;
 
     @Override
     @Transactional
-    public CompilationDto create(CompilationIncomeDto dto) {
-        Map<Long, Integer> views;
-        Map<Event, List<EventRequest>> confirmedRequests;
-        Compilation compilation = CompilationsMapper.toCompilation(dto);
-        compilation.setEvents(findEvensByIds(dto.getEventIds()));
+    public CompilationDto create(NewCompilationDto newCompilationDto) {
+        log.info("Создание новой подборки событий с параметрами {}", newCompilationDto);
 
-        compilation = compilationRepo.save(compilation);
-        confirmedRequests = utilService.findConfirmedRequests(
-                new ArrayList<>(compilation.getEvents())
-        );
-        views = getViews(compilation);
-        log.info("Created Compilation with Id = {} ", compilation.getId());
+        List<Event> events = new ArrayList<>();
 
-        return CompilationsMapper.toCompilationDto(compilation, confirmedRequests, views);
-    }
-
-    @Override
-    @Transactional
-    public CompilationDto update(CompilationIncomeDto dto, long compId) {
-        Map<Long, Integer> views;
-        Map<Event, List<EventRequest>> confirmedRequests;
-        Compilation compilation = utilService.findCompilationOrThrow(compId);
-
-        if (dto.getPinned() != null) compilation.setPinned(dto.getPinned());
-        if (dto.getTitle() != null && !dto.getTitle().isBlank()) compilation.setTitle(dto.getTitle());
-        if (dto.getEventIds() != null && !dto.getEventIds().isEmpty()) {
-            compilation.setEvents(findEvensByIds(dto.getEventIds()));
+        if (!newCompilationDto.getEvents().isEmpty()) {
+            events = eventService.getEventsByIds(newCompilationDto.getEvents());
+            checkSize(events, newCompilationDto.getEvents());
         }
 
-        confirmedRequests = utilService.findConfirmedRequests(
-                new ArrayList<>(compilation.getEvents())
-        );
-        views = getViews(compilation);
-        log.info("Updated Compilation with Id = {} ", compilation.getId());
+        Compilation compilation = compilationRepository.save(compilationMapper.newDtoToCompilation(newCompilationDto, events));
 
-        return CompilationsMapper.toCompilationDto(compilation, confirmedRequests, views);
+        return getById(compilation.getId());
     }
 
     @Override
     @Transactional
-    public CompilationDto delete(long compId) {
-        Map<Long, Integer> views;
-        Map<Event, List<EventRequest>> confirmedRequests;
-        Compilation compilation = utilService.findCompilationOrThrow(compId);
+    public CompilationDto patch(Long compId, UpdateCompilationRequest updateCompilationRequest) {
+        log.info("Обновление подборки событий с id {} и новыми параметрами {}", compId, updateCompilationRequest);
 
-        compilationRepo.delete(compilation);
-        confirmedRequests = utilService.findConfirmedRequests(
-                new ArrayList<>(compilation.getEvents())
-        );
-        views = getViews(compilation);
-        log.info("Deleted Compilation with Id = {} ", compilation.getId());
+        Compilation compilation = getCompilationById(compId);
 
-        return CompilationsMapper.toCompilationDto(compilation, confirmedRequests, views);
+        if (updateCompilationRequest.getTitle() != null) {
+            compilation.setTitle(updateCompilationRequest.getTitle());
+        }
+
+        if (updateCompilationRequest.getPinned() != null) {
+            compilation.setPinned(updateCompilationRequest.getPinned());
+        }
+
+        if (updateCompilationRequest.getEvents() != null) {
+            List<Event> events = eventService.getEventsByIds(updateCompilationRequest.getEvents());
+
+            checkSize(events, updateCompilationRequest.getEvents());
+
+            compilation.setEvents(events);
+        }
+
+        compilationRepository.save(compilation);
+
+        return getById(compId);
     }
 
     @Override
-    public List<CompilationDto> getAll(Boolean pinned, int from, int size) {
-        Set<Event> events = new HashSet<>();
-        Map<Long, Integer> views;
-        Map<Event, List<EventRequest>> confirmedRequests;
+    @Transactional
+    public void deleteById(Long compId) {
+        log.info("Удаление подборки событий с id {}", compId);
+
+        getCompilationById(compId);
+
+        compilationRepository.deleteById(compId);
+    }
+
+    @Override
+    public List<CompilationDto> getAll(Boolean pinned, Pageable pageable) {
+        log.info("Вывод всех подборок событий с параметрами pinned = {}, pageable = {}", pinned, pageable);
+
         List<Compilation> compilations;
-        Pageable pageable = utilService.createPageable("Id", from, size);
 
-        if (pinned != null) {
-            compilations = findAllByPinned(pinned, pageable);
-            log.info("Returning a collection of collections of events on request");
+        if (pinned == null) {
+            compilations = compilationRepository.findAll(pageable).toList();
         } else {
-            compilations = findAll(pageable);
-            log.info("Returning a collection of collections of events on request");
+            compilations = compilationRepository.findAllByPinned(pinned, pageable);
         }
 
-        compilations.forEach(compilation -> events.addAll(compilation.getEvents()));
-        confirmedRequests = utilService.findConfirmedRequestsByCompilations(compilations);
-        views = utilService.findViews(events);
+        Set<Event> uniqueEvents = new HashSet<>();
+        compilations.forEach(compilation -> uniqueEvents.addAll(compilation.getEvents()));
 
-        return CompilationsMapper.toCompilationDto(compilations, confirmedRequests, views);
+        Map<Long, EventShortDto> eventsShortDto = new HashMap<>();
+        eventService.toEventsShortDto(new ArrayList<>(uniqueEvents))
+                .forEach(event -> eventsShortDto.put(event.getId(), event));
+
+        List<CompilationDto> result = new ArrayList<>();
+        compilations.forEach(compilation -> {
+            List<EventShortDto> compEventsShortDto = new ArrayList<>();
+            compilation.getEvents()
+                    .forEach(event -> compEventsShortDto.add(eventsShortDto.get(event.getId())));
+            result.add(compilationMapper.toCompilationDto(compilation, compEventsShortDto));
+        });
+
+        return result;
     }
 
     @Override
-    public CompilationDto getById(long compId) {
-        Map<Long, Integer> views;
-        Map<Event, List<EventRequest>> confirmedRequests;
+    public CompilationDto getById(Long compId) {
+        log.info("Вывод подборки событий с id {}", compId);
 
-        Compilation compilation = utilService.findCompilationOrThrow(compId);
-        confirmedRequests = utilService.findConfirmedRequests(
-                new ArrayList<>(compilation.getEvents())
-        );
-        views = getViews(compilation);
-        log.info("Returned Compilation with Id = {} ", compilation.getId());
+        Compilation compilation = getCompilationById(compId);
 
-        return CompilationsMapper.toCompilationDto(compilation, confirmedRequests, views);
+        List<EventShortDto> eventsShortDto = eventService.toEventsShortDto(compilation.getEvents());
+
+        return compilationMapper.toCompilationDto(compilation, eventsShortDto);
     }
 
-    private List<Compilation> findAllByPinned(boolean pinned, Pageable pageable) {
-        return compilationRepo.findAllByPinned(pinned, pageable).toList();
+    private Compilation getCompilationById(Long compId) {
+        return compilationRepository.findById(compId)
+                .orElseThrow(() -> new NotFoundException("Подборки с таким id не существует."));
     }
 
-    private List<Compilation> findAll(Pageable pageable) {
-        return compilationRepo.findAll(pageable).toList();
-    }
-
-    private Set<Event> findEvensByIds(List<Long> ids) {
-        return eventRepo.findByIdIn(ids);
-    }
-
-    private Map<Long, Integer> getViews(Compilation compilation) {
-        if (compilation.getEvents() != null && !compilation.getEvents().isEmpty()) {
-            return utilService.findViews(compilation);
-        } else {
-            return Map.of();
+    private void checkSize(List<Event> events, List<Long> eventsIdToUpdate) {
+        if (events.size() != eventsIdToUpdate.size()) {
+            throw new NotFoundException("Некоторые события не найдены.");
         }
     }
 }

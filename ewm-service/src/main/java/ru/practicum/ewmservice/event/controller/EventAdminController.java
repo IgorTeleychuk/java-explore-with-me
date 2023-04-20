@@ -1,42 +1,46 @@
 package ru.practicum.ewmservice.event.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewmservice.MainCommonUtils;
 import ru.practicum.ewmservice.event.dto.EventFullDto;
-import ru.practicum.ewmservice.event.dto.EventIncomeDto;
-import ru.practicum.ewmservice.event.model.EventStates;
-import ru.practicum.ewmservice.event.service.EventAdminService;
-import ru.practicum.ewmservice.util.validation.UpdateValidationGroup;
+import ru.practicum.ewmservice.event.dto.UpdateEventAdminRequest;
+import ru.practicum.ewmservice.event.enums.EventState;
+import ru.practicum.ewmservice.event.service.EventService;
 
+import javax.validation.Valid;
 import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/admin/events")
 @RequiredArgsConstructor
+@RequestMapping("/admin/events")
 @Validated
 public class EventAdminController {
-    private final EventAdminService eventAdminServiceService;
-
-    @PatchMapping(path = "/{eventId}")
-    public EventFullDto update(@Validated(UpdateValidationGroup.class) @RequestBody EventIncomeDto dto,
-                               @PathVariable("eventId") @Positive long eventId) {
-        return eventAdminServiceService.update(dto, eventId);
-    }
+    private final EventService eventService;
 
     @GetMapping
-    public List<EventFullDto> findByFilter(@RequestParam(name = "users", required = false) List<Long> userIds,
-                                           @RequestParam(name = "states", required = false) List<EventStates> states,
-                                           @RequestParam(name = "categories", required = false) List<Long> categories,
-                                           @RequestParam(name = "rangeStart", required = false)
-                                               LocalDateTime rangeStart,
-                                           @RequestParam(name = "rangeEnd", required = false)
-                                               LocalDateTime rangeEnd,
-                                           @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero int from,
-                                           @RequestParam(name = "size", defaultValue = "10") @Positive int size) {
-        return eventAdminServiceService.getAll(userIds, states, categories, rangeStart, rangeEnd, from, size);
+    @ResponseStatus(HttpStatus.OK)
+    public List<EventFullDto> getEventsByAdmin(
+            @RequestParam(required = false) List<Long> users,
+            @RequestParam(required = false) List<EventState> states,
+            @RequestParam(required = false) List<Long> categories,
+            @RequestParam(required = false) @DateTimeFormat(pattern = MainCommonUtils.DT_FORMAT) LocalDateTime rangeStart,
+            @RequestParam(required = false) @DateTimeFormat(pattern = MainCommonUtils.DT_FORMAT) LocalDateTime rangeEnd,
+            @RequestParam(required = false, defaultValue = MainCommonUtils.PAGE_DEFAULT_FROM) @PositiveOrZero Integer from,
+            @RequestParam(required = false, defaultValue = MainCommonUtils.PAGE_DEFAULT_SIZE) @Positive Integer size) {
+        return eventService.getEventsByAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
+    }
+
+    @PatchMapping("/{eventId}")
+    @ResponseStatus(HttpStatus.OK)
+    public EventFullDto patchEventByAdmin(@PathVariable Long eventId,
+                              @Valid @RequestBody UpdateEventAdminRequest updateEventAdminRequest) {
+        return eventService.patchEventByAdmin(eventId, updateEventAdminRequest);
     }
 }

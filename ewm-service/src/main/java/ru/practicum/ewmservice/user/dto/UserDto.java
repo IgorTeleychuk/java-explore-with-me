@@ -1,14 +1,16 @@
 package ru.practicum.ewmservice.user.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-@Builder(toBuilder = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
-@RequiredArgsConstructor
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class UserDto {
-    private final Long id;
-    private final String name;
-    private final String email;
+    String email;
+    Long id;
+    String name;
 }

@@ -1,16 +1,20 @@
 package ru.practicum.ewmservice.compilation.dto;
 
-import lombok.Builder;
-import lombok.Getter;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 import ru.practicum.ewmservice.event.dto.EventShortDto;
 
 import java.util.List;
 
-@Builder(toBuilder = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class CompilationDto {
-    private final Long id;
-    private final List<EventShortDto> events;
-    private final boolean pinned;
-    private final String title;
+    Long id;
+    String title;
+    Boolean pinned;
+    List<EventShortDto> events;
 }

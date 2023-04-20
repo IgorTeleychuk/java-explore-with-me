@@ -1,13 +1,30 @@
 package ru.practicum.ewmservice.user.dto;
 
-import lombok.Builder;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
 
-@Builder(toBuilder = true)
+import java.util.Objects;
+
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
-@RequiredArgsConstructor
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class UserShortDto {
-    private final Long id;
-    private final String name;
+    Long id;
+    String name;
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        UserShortDto that = (UserShortDto) o;
+        return Objects.equals(id, that.id) && Objects.equals(name, that.name);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, name);
+    }
 }

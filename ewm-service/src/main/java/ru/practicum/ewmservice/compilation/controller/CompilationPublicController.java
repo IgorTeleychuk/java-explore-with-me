@@ -1,8 +1,11 @@
 package ru.practicum.ewmservice.compilation.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import ru.practicum.ewmservice.MainCommonUtils;
 import ru.practicum.ewmservice.compilation.dto.CompilationDto;
 import ru.practicum.ewmservice.compilation.service.CompilationService;
 
@@ -11,21 +14,24 @@ import javax.validation.constraints.PositiveOrZero;
 import java.util.List;
 
 @RestController
-@RequestMapping(path = "/compilations")
 @RequiredArgsConstructor
+@RequestMapping("/compilations")
 @Validated
 public class CompilationPublicController {
     private final CompilationService compilationService;
 
     @GetMapping
-    public List<CompilationDto> getAll(@RequestParam(name = "pinned", required = false) Boolean pinned,
-                                       @RequestParam(name = "from", defaultValue = "0") @PositiveOrZero int from,
-                                       @RequestParam(name = "size", defaultValue = "10") @Positive int size) {
-        return compilationService.getAll(pinned, from, size);
+    @ResponseStatus(HttpStatus.OK)
+    public List<CompilationDto> getAll(
+            @RequestParam(required = false) Boolean pinned,
+            @RequestParam(required = false, defaultValue = MainCommonUtils.PAGE_DEFAULT_FROM) @PositiveOrZero Integer from,
+            @RequestParam(required = false, defaultValue = MainCommonUtils.PAGE_DEFAULT_SIZE) @Positive Integer size) {
+        return compilationService.getAll(pinned, PageRequest.of(from / size, size));
     }
 
-    @GetMapping(path = "/{compId}")
-    public CompilationDto getById(@PathVariable("compId") @Positive long compId) {
+    @GetMapping("/{compId}")
+    @ResponseStatus(HttpStatus.OK)
+    public CompilationDto getById(@PathVariable Long compId) {
         return compilationService.getById(compId);
     }
 }

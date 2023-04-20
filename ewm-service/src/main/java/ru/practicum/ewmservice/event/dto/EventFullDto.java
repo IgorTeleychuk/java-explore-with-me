@@ -1,34 +1,45 @@
 package ru.practicum.ewmservice.event.dto;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
-import lombok.Builder;
-import lombok.Getter;
-import ru.practicum.ewmservice.categories.dto.CategoryDto;
-import ru.practicum.ewmservice.user.dto.UserDto;
+import lombok.*;
+import lombok.experimental.FieldDefaults;
+import ru.practicum.ewmservice.MainCommonUtils;
+import ru.practicum.ewmservice.category.dto.CategoryDto;
+import ru.practicum.ewmservice.event.enums.EventState;
+import ru.practicum.ewmservice.user.dto.UserShortDto;
 
 import java.time.LocalDateTime;
 
-@Builder(toBuilder = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class EventFullDto {
-    private Long id;
-    private String annotation;
-    private CategoryDto category;
-    private Integer confirmedRequests;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime createdOn;
-    private String description;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime eventDate;
-    private UserDto initiator;
-    private LocationDto location;
-    private Boolean paid;
-    private Integer participantLimit;
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
-    private LocalDateTime publishedOn;
-    private Boolean requestModeration;
-    private String state;
-    private String title;
-    private Integer views;
-    private AdminCommentDto comment;
+    String annotation;
+    CategoryDto category;
+    Long confirmedRequests;
+
+    @JsonFormat(pattern = MainCommonUtils.DT_FORMAT, shape = JsonFormat.Shape.STRING)
+    LocalDateTime createdOn;
+
+    String description;
+
+    @JsonFormat(pattern = MainCommonUtils.DT_FORMAT, shape = JsonFormat.Shape.STRING)
+    LocalDateTime eventDate;
+
+    Long id;
+    UserShortDto initiator;
+    LocationDto location;
+    Boolean paid;
+    Integer participantLimit;
+
+    @JsonFormat(pattern = MainCommonUtils.DT_FORMAT, shape = JsonFormat.Shape.STRING)
+    LocalDateTime publishedOn;
+
+    Boolean requestModeration;
+    EventState state;
+    String title;
+    Long views;
 }

@@ -1,19 +1,20 @@
 package ru.practicum.ewmservice.compilation.service;
 
+import org.springframework.data.domain.Pageable;
 import ru.practicum.ewmservice.compilation.dto.CompilationDto;
-import ru.practicum.ewmservice.compilation.dto.CompilationIncomeDto;
+import ru.practicum.ewmservice.compilation.dto.NewCompilationDto;
+import ru.practicum.ewmservice.compilation.dto.UpdateCompilationRequest;
 
 import java.util.List;
 
 public interface CompilationService {
+    CompilationDto create(NewCompilationDto newCompilationDto);
 
-    CompilationDto create(CompilationIncomeDto dto);
+    CompilationDto patch(Long compId, UpdateCompilationRequest updateCompilationRequest);
 
-    CompilationDto update(CompilationIncomeDto dto, long compId);
+    void deleteById(Long compId);
 
-    CompilationDto delete(long compId);
+    List<CompilationDto> getAll(Boolean pinned, Pageable pageable);
 
-    List<CompilationDto> getAll(Boolean pinned, int from, int size);
-
-    CompilationDto getById(long compId);
+    CompilationDto getById(Long compId);
 }

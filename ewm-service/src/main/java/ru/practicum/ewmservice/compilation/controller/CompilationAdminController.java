@@ -5,35 +5,35 @@ import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.ewmservice.compilation.dto.CompilationDto;
-import ru.practicum.ewmservice.compilation.dto.CompilationIncomeDto;
+import ru.practicum.ewmservice.compilation.dto.NewCompilationDto;
+import ru.practicum.ewmservice.compilation.dto.UpdateCompilationRequest;
 import ru.practicum.ewmservice.compilation.service.CompilationService;
-import ru.practicum.ewmservice.util.validation.CreateValidationGroup;
-import ru.practicum.ewmservice.util.validation.UpdateValidationGroup;
 
-import javax.validation.constraints.Positive;
+import javax.validation.Valid;
 
 @RestController
-@RequestMapping(path = "/admin/compilations")
 @RequiredArgsConstructor
+@RequestMapping("/admin/compilations")
 @Validated
 public class CompilationAdminController {
     private final CompilationService compilationService;
 
     @PostMapping
-    @ResponseStatus(value = HttpStatus.CREATED)
-    public CompilationDto create(@Validated(CreateValidationGroup.class) @RequestBody CompilationIncomeDto dto) {
-        return compilationService.create(dto);
+    @ResponseStatus(HttpStatus.CREATED)
+    public CompilationDto create(@Valid @RequestBody NewCompilationDto newCompilationDto) {
+        return compilationService.create(newCompilationDto);
     }
 
-    @PatchMapping(path = "/{compId}")
-    public CompilationDto update(@Validated(UpdateValidationGroup.class) @RequestBody CompilationIncomeDto dto,
-                                 @PathVariable("compId") long compId) {
-        return compilationService.update(dto, compId);
+    @PatchMapping("/{compId}")
+    @ResponseStatus(HttpStatus.OK)
+    public CompilationDto patch(@PathVariable Long compId,
+                                @Valid @RequestBody UpdateCompilationRequest updateCompilationRequest) {
+        return compilationService.patch(compId, updateCompilationRequest);
     }
 
-    @DeleteMapping(path = "/{compId}")
-    @ResponseStatus(value = HttpStatus.NO_CONTENT)
-    public CompilationDto delete(@PathVariable("compId") @Positive long compId) {
-        return compilationService.delete(compId);
+    @DeleteMapping("/{compId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteById(@PathVariable Long compId) {
+        compilationService.deleteById(compId);
     }
 }

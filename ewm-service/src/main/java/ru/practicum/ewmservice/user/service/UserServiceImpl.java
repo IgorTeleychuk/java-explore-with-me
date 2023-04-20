@@ -2,62 +2,66 @@ package ru.practicum.ewmservice.user.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import ru.practicum.ewmservice.exception.NotFoundException;
+import ru.practicum.ewmservice.user.dto.NewUserRequest;
 import ru.practicum.ewmservice.user.dto.UserDto;
-import ru.practicum.ewmservice.user.dto.UserIncomeDto;
+import ru.practicum.ewmservice.user.mapper.UserMapper;
 import ru.practicum.ewmservice.user.model.User;
-import ru.practicum.ewmservice.user.storage.UserRepo;
-import ru.practicum.ewmservice.util.UtilService;
-import ru.practicum.ewmservice.util.mappers.UserMapper;
+import ru.practicum.ewmservice.user.repository.UserRepository;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
-@Slf4j
-@Transactional(readOnly = true)
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
+@Slf4j
 public class UserServiceImpl implements UserService {
-    private final UserRepo userRepo;
-    private final UtilService utilService;
+    private final UserRepository userRepository;
+    private final UserMapper userMapper;
 
     @Override
     @Transactional
-    public UserDto create(UserIncomeDto dto) {
-        User user = userRepo.save(UserMapper.toUser(dto));
-        log.info("Created User with Id = {} ", user.getId());
-        return UserMapper.toUserDto(user);
+    public UserDto create(NewUserRequest newUserRequest) {
+        log.info("Добавление пользователя {}", newUserRequest);
+
+        return userMapper.toUserDto(userRepository.save(userMapper.toUser(newUserRequest)));
     }
 
     @Override
-    public List<UserDto> get(List<Long> ids, int from, int size) {
-        List<User> users;
+    public List<UserDto> getUsers(List<Long> ids, Pageable pageable) {
+        log.info("Вывод пользователей с id {} и пагинацией {}", ids, pageable);
 
-        Pageable pageable = PageRequest.of(
-                from == 0 ? 0 : (from / size),
-                size,
-                Sort.by(Sort.Direction.ASC, "Id")
-        );
-
-        if (ids == null) {
-            users = userRepo.findAll(pageable).toList();
-            log.info("Returned a list of all users");
+        if (ids == null || ids.isEmpty()) {
+            return userRepository.findAll(pageable).stream()
+                    .map(userMapper::toUserDto)
+                    .collect(Collectors.toList());
         } else {
-            users = userRepo.findAllByIdIn(ids, pageable).toList();
-            log.info("Returned a list of all users with Id = {} ", ids);
+            return userRepository.findAllByIdIn(ids, pageable).stream()
+                    .map(userMapper::toUserDto)
+                    .collect(Collectors.toList());
         }
-
-        return UserMapper.toUserDto(users);
     }
 
     @Override
     @Transactional
-    public void delete(long userId) {
-        utilService.findUserOrThrow(userId);
-        userRepo.deleteById(userId);
-        log.info("Removed User with Id = {} ", userId);
+    public void deleteById(Long id) {
+        log.info("Удаление пользователя с id {}", id);
+
+        userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователя с таким id не существует."));
+
+        userRepository.deleteById(id);
+    }
+
+    @Override
+    public User getUserById(Long id) {
+        log.info("Вывод пользователя с id {}", id);
+
+        return userRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Пользователя с таким id не существует."));
     }
 }
