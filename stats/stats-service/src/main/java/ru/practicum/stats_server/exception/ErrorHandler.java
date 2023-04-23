@@ -42,7 +42,7 @@ public class ErrorHandler {
 
     @ExceptionHandler
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public ErrorResponse handleException(final RuntimeException exception) {
+    public ErrorResponse handleException(final Exception exception) {
         log.error("Error 400: {}", exception.getMessage(), exception);
         return new ErrorResponse(exception.getMessage());
     }

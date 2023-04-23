@@ -10,6 +10,7 @@ import lombok.ToString;
 import lombok.experimental.FieldDefaults;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @Getter
@@ -19,6 +20,7 @@ import javax.validation.constraints.NotBlank;
 @ToString
 @Builder
 public class NewCategoryDto {
+    @Size(max = 255)
     @NotBlank
     String name;
 }

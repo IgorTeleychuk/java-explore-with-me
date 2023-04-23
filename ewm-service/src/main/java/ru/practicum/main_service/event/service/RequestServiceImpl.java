@@ -20,10 +20,7 @@ import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.service.UserService;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -70,7 +67,7 @@ public class RequestServiceImpl implements RequestService {
         }
 
         checkIsNewLimitGreaterOld(
-                statsService.getConfirmedRequests(List.of(event)).getOrDefault(eventId, 0L) + 1,
+                statsService.getConfirmedRequests(Set.of(event)).getOrDefault(eventId, 0L) + 1,
                 event.getParticipantLimit()
         );
 
@@ -156,7 +153,7 @@ public class RequestServiceImpl implements RequestService {
         if (eventRequestStatusUpdateRequest.getStatus().equals(RequestStatusAction.REJECTED)) {
             rejectedList.addAll(changeStatusAndSave(requests, RequestStatus.REJECTED));
         } else {
-            Long newConfirmedRequests = statsService.getConfirmedRequests(List.of(event)).getOrDefault(eventId, 0L) +
+            Long newConfirmedRequests = statsService.getConfirmedRequests(Set.of(event)).getOrDefault(eventId, 0L) +
                     eventRequestStatusUpdateRequest.getRequestIds().size();
 
             checkIsNewLimitGreaterOld(newConfirmedRequests, event.getParticipantLimit());

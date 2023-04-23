@@ -9,6 +9,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Size;
 import java.util.Objects;
 
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -19,7 +20,7 @@ import java.util.Objects;
 @Builder
 public class CategoryDto {
     Long id;
-
+    @Size(max = 255)
     @NotBlank
     String name;
 

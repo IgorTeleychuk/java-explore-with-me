@@ -37,7 +37,7 @@ public class CompilationServiceImpl implements CompilationService {
     public CompilationDto create(NewCompilationDto newCompilationDto) {
         log.info("Creating a new collection of events with parameters {}", newCompilationDto);
 
-        List<Event> events = new ArrayList<>();
+        Set<Event> events = new HashSet<>();
 
         if (!newCompilationDto.getEvents().isEmpty()) {
             events = eventService.getEventsByIds(newCompilationDto.getEvents());
@@ -56,7 +56,7 @@ public class CompilationServiceImpl implements CompilationService {
 
         Compilation compilation = getCompilationById(compId);
 
-        if (updateCompilationRequest.getTitle() != null) {
+        if (updateCompilationRequest.getTitle() != null && !updateCompilationRequest.getTitle().isBlank()) {
             compilation.setTitle(updateCompilationRequest.getTitle());
         }
 
@@ -65,7 +65,7 @@ public class CompilationServiceImpl implements CompilationService {
         }
 
         if (updateCompilationRequest.getEvents() != null) {
-            List<Event> events = eventService.getEventsByIds(updateCompilationRequest.getEvents());
+            Set<Event> events = eventService.getEventsByIds(updateCompilationRequest.getEvents());
 
             checkSize(events, updateCompilationRequest.getEvents());
 
@@ -103,12 +103,12 @@ public class CompilationServiceImpl implements CompilationService {
         compilations.forEach(compilation -> uniqueEvents.addAll(compilation.getEvents()));
 
         Map<Long, EventShortDto> eventsShortDto = new HashMap<>();
-        eventService.toEventsShortDto(new ArrayList<>(uniqueEvents))
+        eventService.toEventsShortDto(new HashSet<>(uniqueEvents))
                 .forEach(event -> eventsShortDto.put(event.getId(), event));
 
         List<CompilationDto> result = new ArrayList<>();
         compilations.forEach(compilation -> {
-            List<EventShortDto> compEventsShortDto = new ArrayList<>();
+            Set<EventShortDto> compEventsShortDto = new HashSet<>();
             compilation.getEvents()
                     .forEach(event -> compEventsShortDto.add(eventsShortDto.get(event.getId())));
             result.add(compilationMapper.toCompilationDto(compilation, compEventsShortDto));
@@ -123,7 +123,7 @@ public class CompilationServiceImpl implements CompilationService {
 
         Compilation compilation = getCompilationById(compId);
 
-        List<EventShortDto> eventsShortDto = eventService.toEventsShortDto(compilation.getEvents());
+        Set<EventShortDto> eventsShortDto = eventService.toEventsShortDto(compilation.getEvents());
 
         return compilationMapper.toCompilationDto(compilation, eventsShortDto);
     }
@@ -133,7 +133,7 @@ public class CompilationServiceImpl implements CompilationService {
                 .orElseThrow(() -> new NotFoundException("There is no compilation with this id."));
     }
 
-    private void checkSize(List<Event> events, List<Long> eventsIdToUpdate) {
+    private void checkSize(Set<Event> events, List<Long> eventsIdToUpdate) {
         if (events.size() != eventsIdToUpdate.size()) {
             throw new NotFoundException("Some events were not found.");
         }

@@ -28,8 +28,8 @@ public class CategoryPublicController {
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
     public List<CategoryDto> getAll(
-            @RequestParam(required = false, defaultValue = MainCommonUtils.PAGE_DEFAULT_FROM) @PositiveOrZero Integer from,
-            @RequestParam(required = false, defaultValue = MainCommonUtils.PAGE_DEFAULT_SIZE) @Positive Integer size) {
+            @RequestParam(defaultValue = MainCommonUtils.PAGE_DEFAULT_FROM) @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = MainCommonUtils.PAGE_DEFAULT_SIZE) @Positive Integer size) {
         return categoryService.getAll(PageRequest.of(from / size, size));
     }
 

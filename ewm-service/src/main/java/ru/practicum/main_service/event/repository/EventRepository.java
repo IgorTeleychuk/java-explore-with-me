@@ -6,11 +6,12 @@ import ru.practicum.main_service.event.model.Event;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface EventRepository extends JpaRepository<Event, Long>, EventCustomRepository {
     List<Event> findAllByInitiatorId(Long userId, Pageable pageable);
 
     Optional<Event> findByIdAndInitiatorId(Long eventId, Long userId);
 
-    List<Event> findAllByIdIn(List<Long> eventsId);
+    Set<Event> findAllByIdIn(List<Long> eventsId);
 }

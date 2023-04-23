@@ -29,8 +29,8 @@ public class CompilationPublicController {
     @ResponseStatus(HttpStatus.OK)
     public List<CompilationDto> getAll(
             @RequestParam(required = false) Boolean pinned,
-            @RequestParam(required = false, defaultValue = MainCommonUtils.PAGE_DEFAULT_FROM) @PositiveOrZero Integer from,
-            @RequestParam(required = false, defaultValue = MainCommonUtils.PAGE_DEFAULT_SIZE) @Positive Integer size) {
+            @RequestParam(defaultValue = MainCommonUtils.PAGE_DEFAULT_FROM) @PositiveOrZero Integer from,
+            @RequestParam(defaultValue = MainCommonUtils.PAGE_DEFAULT_SIZE) @Positive Integer size) {
         return compilationService.getAll(pinned, PageRequest.of(from / size, size));
     }
 

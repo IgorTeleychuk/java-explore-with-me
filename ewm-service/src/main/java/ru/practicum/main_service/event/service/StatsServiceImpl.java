@@ -16,12 +16,7 @@ import ru.practicum.stats_common.model.ViewStats;
 import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -60,13 +55,13 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public Map<Long, Long> getViews(List<Event> events) {
+    public Map<Long, Long> getViews(Set<Event> events) {
         log.info("A request was sent to get statistics of non-unique visits in the form of Map<eventId, count> " +
                 "for a list of events.");
 
         Map<Long, Long> views = new HashMap<>();
 
-        List<Event> publishedEvents = getPublished(events);
+        Set<Event> publishedEvents = getPublished(events);
 
         if (events.isEmpty()) {
             return views;
@@ -97,7 +92,7 @@ public class StatsServiceImpl implements StatsService {
     }
 
     @Override
-    public Map<Long, Long> getConfirmedRequests(List<Event> events) {
+    public Map<Long, Long> getConfirmedRequests(Set<Event> events) {
         List<Long> eventsId = getPublished(events).stream()
                 .map(Event::getId)
                 .collect(Collectors.toList());
@@ -112,9 +107,9 @@ public class StatsServiceImpl implements StatsService {
         return requestStats;
     }
 
-    private List<Event> getPublished(List<Event> events) {
+    private Set<Event> getPublished(Set<Event> events) {
         return events.stream()
                 .filter(event -> event.getPublishedOn() != null)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 }

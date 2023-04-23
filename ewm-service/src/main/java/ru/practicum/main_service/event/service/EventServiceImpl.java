@@ -7,12 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.category.service.CategoryService;
-import ru.practicum.main_service.event.dto.EventFullDto;
-import ru.practicum.main_service.event.dto.EventShortDto;
-import ru.practicum.main_service.event.dto.LocationDto;
-import ru.practicum.main_service.event.dto.NewEventDto;
-import ru.practicum.main_service.event.dto.UpdateEventAdminRequest;
-import ru.practicum.main_service.event.dto.UpdateEventUserRequest;
+import ru.practicum.main_service.event.dto.*;
 import ru.practicum.main_service.event.enums.EventSortType;
 import ru.practicum.main_service.event.enums.EventState;
 import ru.practicum.main_service.event.mapper.EventMapper;
@@ -28,11 +23,7 @@ import ru.practicum.main_service.user.service.UserService;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -49,7 +40,7 @@ public class EventServiceImpl implements EventService {
     private final LocationMapper locationMapper;
 
     @Override
-    public List<EventFullDto> getEventsByAdmin(List<Long> users, List<EventState> states, List<Long> categories,
+    public Set<EventFullDto> getEventsByAdmin(List<Long> users, List<EventState> states, List<Long> categories,
                                                LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
         log.info("Output of events to the administrator's request with the users parameters = {}, states = {}, categoriesId = {}, " +
                 "rangeStart = {}, rangeEnd = {}, from = {}, size = {}",
@@ -57,7 +48,7 @@ public class EventServiceImpl implements EventService {
 
         checkStartIsBeforeEnd(rangeStart, rangeEnd);
 
-        List<Event> events = eventRepository.getEventsByAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
+        Set<Event> events = eventRepository.getEventsByAdmin(users, states, categories, rangeStart, rangeEnd, from, size);
 
         return toEventsFullDto(events);
     }
@@ -71,11 +62,11 @@ public class EventServiceImpl implements EventService {
 
         Event event = getEventById(eventId);
 
-        if (updateEventAdminRequest.getAnnotation() != null) {
+        if (updateEventAdminRequest.getAnnotation() != null && !updateEventAdminRequest.getAnnotation().isBlank()) {
             event.setAnnotation(updateEventAdminRequest.getAnnotation());
         }
 
-        if (updateEventAdminRequest.getDescription() != null) {
+        if (updateEventAdminRequest.getDescription() != null && !updateEventAdminRequest.getDescription().isBlank()) {
             event.setDescription(updateEventAdminRequest.getDescription());
         }
 
@@ -97,7 +88,7 @@ public class EventServiceImpl implements EventService {
 
         if (updateEventAdminRequest.getParticipantLimit() != null) {
             checkIsNewLimitNotLessOld(updateEventAdminRequest.getParticipantLimit(),
-                    statsService.getConfirmedRequests(List.of(event)).getOrDefault(eventId, 0L));
+                    statsService.getConfirmedRequests(Set.of(event)).getOrDefault(eventId, 0L));
 
             event.setParticipantLimit(updateEventAdminRequest.getParticipantLimit());
         }
@@ -123,7 +114,7 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        if (updateEventAdminRequest.getTitle() != null) {
+        if (updateEventAdminRequest.getTitle() != null && !updateEventAdminRequest.getTitle().isBlank()) {
             event.setTitle(updateEventAdminRequest.getTitle());
         }
 
@@ -131,14 +122,14 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventShortDto> getAllEventsByPrivate(Long userId, Pageable pageable) {
+    public Set<EventShortDto> getAllEventsByPrivate(Long userId, Pageable pageable) {
         log.info("Output of all user events with id {} and pagination {}", userId, pageable);
 
         userService.getUserById(userId);
 
         List<Event> events = eventRepository.findAllByInitiatorId(userId, pageable);
 
-        return toEventsShortDto(events);
+        return toEventsShortDto(new HashSet<>(events));
     }
 
     @Override
@@ -185,7 +176,7 @@ public class EventServiceImpl implements EventService {
             throw new ForbiddenException("You can only change unpublished or canceled events.");
         }
 
-        if (updateEventUserRequest.getAnnotation() != null) {
+        if (updateEventUserRequest.getAnnotation() != null && !updateEventUserRequest.getAnnotation().isBlank()) {
             event.setAnnotation(updateEventUserRequest.getAnnotation());
         }
 
@@ -193,7 +184,7 @@ public class EventServiceImpl implements EventService {
             event.setCategory(categoryService.getCategoryById(updateEventUserRequest.getCategory()));
         }
 
-        if (updateEventUserRequest.getDescription() != null) {
+        if (updateEventUserRequest.getDescription() != null && !updateEventUserRequest.getDescription().isBlank()) {
             event.setDescription(updateEventUserRequest.getDescription());
         }
 
@@ -228,7 +219,7 @@ public class EventServiceImpl implements EventService {
             }
         }
 
-        if (updateEventUserRequest.getTitle() != null) {
+        if (updateEventUserRequest.getTitle() != null && updateEventUserRequest.getTitle().isBlank()) {
             event.setTitle(updateEventUserRequest.getTitle());
         }
 
@@ -236,7 +227,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<EventShortDto> getEventsByPublic(
+    public Set<EventShortDto> getEventsByPublic(
             String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd,
             Boolean onlyAvailable, EventSortType sort, Integer from, Integer size, HttpServletRequest request) {
         log.info("Output of events to a public request with parameters text = {}, categoriesId = {}, paid = {}, rangeStart = {}, " +
@@ -245,29 +236,29 @@ public class EventServiceImpl implements EventService {
 
         checkStartIsBeforeEnd(rangeStart, rangeEnd);
 
-        List<Event> events = eventRepository.getEventsByPublic(text, categories, paid, rangeStart, rangeEnd, from, size);
+        Set<Event> events = eventRepository.getEventsByPublic(text, categories, paid, rangeStart, rangeEnd, from, size);
 
         if (events.isEmpty()) {
-            return List.of();
+            return Set.of();
         }
 
         Map<Long, Integer> eventsParticipantLimit = new HashMap<>();
         events.forEach(event -> eventsParticipantLimit.put(event.getId(), event.getParticipantLimit()));
 
-        List<EventShortDto> eventsShortDto = toEventsShortDto(events);
+        Set<EventShortDto> eventsShortDto = toEventsShortDto(events);
 
         if (onlyAvailable) {
             eventsShortDto = eventsShortDto.stream()
                     .filter(eventShort -> (eventsParticipantLimit.get(eventShort.getId()) == 0 ||
                             eventsParticipantLimit.get(eventShort.getId()) > eventShort.getConfirmedRequests()))
-                    .collect(Collectors.toList());
+                    .collect(Collectors.toSet());
         }
 
-        if (needSort(sort, EventSortType.VIEWS)) {
-            eventsShortDto.sort(Comparator.comparing(EventShortDto::getViews));
-        } else if (needSort(sort, EventSortType.EVENT_DATE)) {
-            eventsShortDto.sort(Comparator.comparing(EventShortDto::getEventDate));
-        }
+//        if (needSort(sort, EventSortType.VIEWS)) {
+//            eventsShortDto.sort(Comparator.comparing(EventShortDto::getViews));
+//        } else if (needSort(sort, EventSortType.EVENT_DATE)) {
+//            eventsShortDto.sort(Comparator.comparing(EventShortDto::getEventDate));
+//        }
 
         statsService.addHit(request);
 
@@ -298,18 +289,18 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public List<Event> getEventsByIds(List<Long> eventsId) {
+    public Set<Event> getEventsByIds(List<Long> eventsId) {
         log.info("Output a list of events with ids {}", eventsId);
 
         if (eventsId.isEmpty()) {
-            return new ArrayList<>();
+            return new HashSet<>();
         }
 
         return eventRepository.findAllByIdIn(eventsId);
     }
 
     @Override
-    public List<EventShortDto> toEventsShortDto(List<Event> events) {
+    public Set<EventShortDto> toEventsShortDto(Set<Event> events) {
         log.info("Converting a list of events to an EventShortDto {}", events);
 
         Map<Long, Long> views = statsService.getViews(events);
@@ -320,10 +311,10 @@ public class EventServiceImpl implements EventService {
                         event,
                         confirmedRequests.getOrDefault(event.getId(), 0L),
                         views.getOrDefault(event.getId(), 0L)))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
-    private List<EventFullDto> toEventsFullDto(List<Event> events) {
+    private Set<EventFullDto> toEventsFullDto(Set<Event> events) {
         Map<Long, Long> views = statsService.getViews(events);
         Map<Long, Long> confirmedRequests = statsService.getConfirmedRequests(events);
 
@@ -332,11 +323,12 @@ public class EventServiceImpl implements EventService {
                         event,
                         confirmedRequests.getOrDefault(event.getId(), 0L),
                         views.getOrDefault(event.getId(), 0L)))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
     }
 
     private EventFullDto toEventFullDto(Event event) {
-        return toEventsFullDto(List.of(event)).get(0);
+        Set<EventFullDto> events = toEventsFullDto(Set.of(event));
+        return events.iterator().next();
     }
 
     private Event getEventByIdAndInitiatorId(Long eventId, Long userId) {

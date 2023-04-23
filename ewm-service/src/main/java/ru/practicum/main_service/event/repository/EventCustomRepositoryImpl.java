@@ -11,12 +11,14 @@ import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class EventCustomRepositoryImpl implements EventCustomRepository {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public List<Event> getEventsByAdmin(List<Long> users, List<EventState> states, List<Long> categories,
+    public Set<Event> getEventsByAdmin(List<Long> users, List<EventState> states, List<Long> categories,
                                                LocalDateTime rangeStart, LocalDateTime rangeEnd, Integer from, Integer size) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Event> query = builder.createQuery(Event.class);
@@ -44,11 +46,11 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
         }
 
         query.select(root).where(criteria);
-        return entityManager.createQuery(query).setFirstResult(from).setMaxResults(size).getResultList();
+        return entityManager.createQuery(query).setFirstResult(from).setMaxResults(size).getResultStream().collect(Collectors.toSet());
     }
 
-    public List<Event> getEventsByPublic(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart,
-                                         LocalDateTime rangeEnd, Integer from, Integer size) {
+    public Set<Event> getEventsByPublic(String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart,
+                                        LocalDateTime rangeEnd, Integer from, Integer size) {
         CriteriaBuilder builder = entityManager.getCriteriaBuilder();
         CriteriaQuery<Event> query = builder.createQuery(Event.class);
         Root<Event> root = query.from(Event.class);
@@ -83,6 +85,6 @@ public class EventCustomRepositoryImpl implements EventCustomRepository {
         criteria = builder.and(criteria, root.get("state").in(EventState.PUBLISHED));
 
         query.select(root).where(criteria);
-        return entityManager.createQuery(query).setFirstResult(from).setMaxResults(size).getResultList();
+        return entityManager.createQuery(query).setFirstResult(from).setMaxResults(size).getResultStream().collect(Collectors.toSet());
     }
 }
