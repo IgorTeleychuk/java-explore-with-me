@@ -7,6 +7,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import ru.practicum.main_service.MainCommonUtils;
 import ru.practicum.main_service.event.dto.*;
+import ru.practicum.main_service.event.dto.UpdateEventRequest.UpdateEventUserRequest;
 import ru.practicum.main_service.event.service.EventService;
 import ru.practicum.main_service.event.service.RequestService;
 

@@ -16,7 +16,6 @@ import javax.validation.constraints.Positive;
 import javax.validation.constraints.PositiveOrZero;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Set;
 
 @RestController
 @RequiredArgsConstructor
@@ -27,7 +26,7 @@ public class EventPublicController {
 
     @GetMapping
     @ResponseStatus(HttpStatus.OK)
-    public Set<EventShortDto> getEventsByPublic(
+    public List<EventShortDto> getEventsByPublic(
             @RequestParam(required = false) String text,
             @RequestParam(required = false) List<Long> categories,
             @RequestParam(required = false) Boolean paid,

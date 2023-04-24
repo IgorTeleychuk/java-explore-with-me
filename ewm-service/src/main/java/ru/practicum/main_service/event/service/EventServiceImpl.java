@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.category.service.CategoryService;
 import ru.practicum.main_service.event.dto.*;
+import ru.practicum.main_service.event.dto.UpdateEventRequest.UpdateEventAdminRequest;
+import ru.practicum.main_service.event.dto.UpdateEventRequest.UpdateEventUserRequest;
 import ru.practicum.main_service.event.enums.EventSortType;
 import ru.practicum.main_service.event.enums.EventState;
 import ru.practicum.main_service.event.mapper.EventMapper;
@@ -227,7 +229,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Set<EventShortDto> getEventsByPublic(
+    public List<EventShortDto> getEventsByPublic(
             String text, List<Long> categories, Boolean paid, LocalDateTime rangeStart, LocalDateTime rangeEnd,
             Boolean onlyAvailable, EventSortType sort, Integer from, Integer size, HttpServletRequest request) {
         log.info("Output of events to a public request with parameters text = {}, categoriesId = {}, paid = {}, rangeStart = {}, " +
@@ -239,7 +241,7 @@ public class EventServiceImpl implements EventService {
         Set<Event> events = eventRepository.getEventsByPublic(text, categories, paid, rangeStart, rangeEnd, from, size);
 
         if (events.isEmpty()) {
-            return Set.of();
+            return List.of();
         }
 
         Map<Long, Integer> eventsParticipantLimit = new HashMap<>();
@@ -254,15 +256,17 @@ public class EventServiceImpl implements EventService {
                     .collect(Collectors.toSet());
         }
 
-//        if (needSort(sort, EventSortType.VIEWS)) {
-//            eventsShortDto.sort(Comparator.comparing(EventShortDto::getViews));
-//        } else if (needSort(sort, EventSortType.EVENT_DATE)) {
-//            eventsShortDto.sort(Comparator.comparing(EventShortDto::getEventDate));
-//        }
+        List<EventShortDto> sortedList = new ArrayList<>(eventsShortDto);
+
+        if (needSort(sort, EventSortType.VIEWS)) {
+            sortedList.sort(Comparator.comparing(EventShortDto::getViews));
+        } else if (needSort(sort, EventSortType.EVENT_DATE)) {
+            sortedList.sort(Comparator.comparing(EventShortDto::getEventDate));
+        }
 
         statsService.addHit(request);
 
-        return eventsShortDto;
+        return sortedList;
     }
 
     @Override

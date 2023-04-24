@@ -39,14 +39,15 @@ public class CompilationServiceImpl implements CompilationService {
 
         Set<Event> events = new HashSet<>();
 
-        if (!newCompilationDto.getEvents().isEmpty()) {
+        if (newCompilationDto.getEvents() != null && !newCompilationDto.getEvents().isEmpty()) {
             events = eventService.getEventsByIds(newCompilationDto.getEvents());
             checkSize(events, newCompilationDto.getEvents());
         }
 
         Compilation compilation = compilationRepository.save(compilationMapper.newDtoToCompilation(newCompilationDto, events));
+        Set<EventShortDto> eventsShortDto = eventService.toEventsShortDto(compilation.getEvents());
 
-        return getById(compilation.getId());
+        return compilationMapper.toCompilationDto(compilation, eventsShortDto);
     }
 
     @Override
@@ -73,8 +74,9 @@ public class CompilationServiceImpl implements CompilationService {
         }
 
         compilationRepository.save(compilation);
+        Set<EventShortDto> eventsShortDto = eventService.toEventsShortDto(compilation.getEvents());
 
-        return getById(compId);
+        return compilationMapper.toCompilationDto(compilation, eventsShortDto);
     }
 
     @Override

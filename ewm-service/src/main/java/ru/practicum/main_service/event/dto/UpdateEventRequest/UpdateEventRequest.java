@@ -1,10 +1,10 @@
-package ru.practicum.main_service.event.dto;
+package ru.practicum.main_service.event.dto.UpdateEventRequest;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import ru.practicum.main_service.MainCommonUtils;
-import ru.practicum.main_service.event.enums.EventStateAction;
+import ru.practicum.main_service.event.dto.LocationDto;
 
 import javax.validation.Valid;
 import javax.validation.constraints.PositiveOrZero;
@@ -39,8 +39,6 @@ public class UpdateEventRequest {
     Integer participantLimit;
 
     Boolean requestModeration;
-
-    EventStateAction stateAction;
 
     @Size(min = MainCommonUtils.MIN_LENGTH_TITLE, max = MainCommonUtils.MAX_LENGTH_TITLE)
     String title;
