@@ -50,7 +50,7 @@ public class RequestServiceImpl implements RequestService {
         log.info("Creating a request to participate in an event with id {} by a user with id {}", eventId, userId);
 
         User user = userService.getUserById(userId);
-        Event event = eventService.getEventById(eventId);
+        Event event = eventService.getPublicEventById(eventId);
 
         if (Objects.equals(event.getInitiator().getId(), userId)) {
             throw new ForbiddenException("You cannot create a request for your own event.");
@@ -110,7 +110,7 @@ public class RequestServiceImpl implements RequestService {
                 "owner with id {}", eventId, userId);
 
         userService.getUserById(userId);
-        Event event = eventService.getEventById(eventId);
+        Event event = eventService.getPublicEventById(eventId);
 
         checkUserIsOwner(event.getInitiator().getId(), userId);
 
@@ -125,7 +125,7 @@ public class RequestServiceImpl implements RequestService {
                 eventId, userId, eventRequestStatusUpdateRequest);
 
         userService.getUserById(userId);
-        Event event = eventService.getEventById(eventId);
+        Event event = eventService.getPublicEventById(eventId);
 
         checkUserIsOwner(event.getInitiator().getId(), userId);
 

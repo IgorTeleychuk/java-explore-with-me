@@ -15,6 +15,7 @@ import ru.practicum.main_service.event.model.Event;
 import ru.practicum.main_service.event.service.EventService;
 import ru.practicum.main_service.exception.ForbiddenException;
 import ru.practicum.main_service.exception.NotFoundException;
+import ru.practicum.main_service.exception.TimeLessTwoHourException;
 import ru.practicum.main_service.user.model.User;
 import ru.practicum.main_service.user.service.UserService;
 
@@ -44,6 +45,8 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public void deleteByAdmin(Long commentId) {
         log.info("Deleting a comment with id {}", commentId);
+        commentRepository.findById(commentId).orElseThrow(() ->
+                new NotFoundException("There is no Comment with this id."));
 
         commentRepository.deleteById(commentId);
     }
@@ -57,13 +60,12 @@ public class CommentServiceImpl implements CommentService {
 
         List<Comment> comments;
         if (eventId != null) {
-            eventService.getEventById(eventId);
+            eventService.getPublicEventById(eventId);
 
             comments = commentRepository.findAllByAuthorIdAndEventId(userId, eventId);
         } else {
             comments = commentRepository.findAllByAuthorId(userId);
         }
-
         return toCommentsDto(comments);
     }
 
@@ -74,7 +76,7 @@ public class CommentServiceImpl implements CommentService {
                 eventId, userId, newCommentDto);
 
         User user = userService.getUserById(userId);
-        Event event = eventService.getEventById(eventId);
+        Event event = eventService.getPublicEventById(eventId);
 
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new ForbiddenException("You can only create comments on published events.");
@@ -96,15 +98,16 @@ public class CommentServiceImpl implements CommentService {
         log.info("Updating a comment with id {} by a user with id {} and parameters {}", commentId, userId, newCommentDto);
 
         userService.getUserById(userId);
+        if (LocalDateTime.now().isBefore(getCommentById(commentId).getCreatedOn().plusHours(2))) {
+            Comment commentFromRepository = getCommentById(commentId);
+            checkUserIsOwner(userId, commentFromRepository.getAuthor().getId());
+            commentFromRepository.setText(newCommentDto.getText());
+            commentFromRepository.setEditedOn(LocalDateTime.now());
 
-        Comment commentFromRepository = getCommentById(commentId);
-
-        checkUserIsOwner(userId, commentFromRepository.getAuthor().getId());
-
-        commentFromRepository.setText(newCommentDto.getText());
-        commentFromRepository.setEditedOn(LocalDateTime.now());
-
-        return commentMapper.toCommentDto(commentRepository.save(commentFromRepository));
+            return commentMapper.toCommentDto(commentRepository.save(commentFromRepository));
+        } else {
+            throw new TimeLessTwoHourException("More than two hours have passed since the comment was created.");
+        }
     }
 
     @Override
@@ -123,7 +126,7 @@ public class CommentServiceImpl implements CommentService {
     public List<CommentDto> getCommentsByPublic(Long eventId, Pageable pageable) {
         log.info("Output of all comments to the event with id {} and pagination {}", eventId, pageable);
 
-        eventService.getEventById(eventId);
+        eventService.getPublicEventById(eventId);
 
         return toCommentsDto(commentRepository.findAllByEventId(eventId, pageable));
     }

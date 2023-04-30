@@ -62,7 +62,7 @@ public class EventServiceImpl implements EventService {
 
         checkNewEventDate(updateEventAdminRequest.getEventDate(), LocalDateTime.now().plusHours(1));
 
-        Event event = getEventById(eventId);
+        Event event = getPublicEventById(eventId);
 
         if (updateEventAdminRequest.getAnnotation() != null && !updateEventAdminRequest.getAnnotation().isBlank()) {
             event.setAnnotation(updateEventAdminRequest.getAnnotation());
@@ -273,7 +273,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto getEventByPublic(Long eventId, HttpServletRequest request) {
         log.info("Event output with id {} to a public inquiry", eventId);
 
-        Event event = getEventById(eventId);
+        Event event = getPublicEventById(eventId);
 
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new NotFoundException("The event with this id has not been published.");
@@ -285,7 +285,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event getEventById(Long eventId) {
+    public Event getPublicEventById(Long eventId) {
         log.info("Event output with id {}", eventId);
 
         return eventRepository.findById(eventId)
