@@ -2,12 +2,17 @@ package ru.practicum.main_service.event.service;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.practicum.main_service.category.model.Category;
 import ru.practicum.main_service.category.service.CategoryService;
-import ru.practicum.main_service.event.dto.*;
+import ru.practicum.main_service.comment.repository.CommentRepository;
+import ru.practicum.main_service.event.dto.EventFullDto;
+import ru.practicum.main_service.event.dto.EventShortDto;
+import ru.practicum.main_service.event.dto.LocationDto;
+import ru.practicum.main_service.event.dto.NewEventDto;
 import ru.practicum.main_service.event.dto.UpdateEventRequest.UpdateEventAdminRequest;
 import ru.practicum.main_service.event.dto.UpdateEventRequest.UpdateEventUserRequest;
 import ru.practicum.main_service.event.enums.EventSortType;
@@ -35,6 +40,8 @@ import java.util.stream.Collectors;
 public class EventServiceImpl implements EventService {
     private final UserService userService;
     private final CategoryService categoryService;
+
+    private final CommentRepository commentRepository;
     private final StatsService statsService;
     private final LocationRepository locationRepository;
     private final EventRepository eventRepository;
@@ -62,7 +69,7 @@ public class EventServiceImpl implements EventService {
 
         checkNewEventDate(updateEventAdminRequest.getEventDate(), LocalDateTime.now().plusHours(1));
 
-        Event event = getEventById(eventId);
+        Event event = getPublicEventById(eventId);
 
         if (updateEventAdminRequest.getAnnotation() != null && !updateEventAdminRequest.getAnnotation().isBlank()) {
             event.setAnnotation(updateEventAdminRequest.getAnnotation());
@@ -273,7 +280,7 @@ public class EventServiceImpl implements EventService {
     public EventFullDto getEventByPublic(Long eventId, HttpServletRequest request) {
         log.info("Event output with id {} to a public inquiry", eventId);
 
-        Event event = getEventById(eventId);
+        Event event = getPublicEventById(eventId);
 
         if (!event.getState().equals(EventState.PUBLISHED)) {
             throw new NotFoundException("The event with this id has not been published.");
@@ -285,7 +292,7 @@ public class EventServiceImpl implements EventService {
     }
 
     @Override
-    public Event getEventById(Long eventId) {
+    public Event getPublicEventById(Long eventId) {
         log.info("Event output with id {}", eventId);
 
         return eventRepository.findById(eventId)
@@ -309,12 +316,28 @@ public class EventServiceImpl implements EventService {
 
         Map<Long, Long> views = statsService.getViews(events);
         Map<Long, Long> confirmedRequests = statsService.getConfirmedRequests(events);
+        List<Long> eventsId = new ArrayList<>();
+
+        for (Event event : events) {
+            eventsId.add(event.getId());
+        }
+        Map<Long, Long> comments = new HashMap<>();
+
+        for (Event event : events) {
+            comments.put(event.getId(), (long) commentRepository.findAllByEventId(event.getId(),
+                    PageRequest.of(0, 10)).size());
+        }
+//        Map<Long, Integer> commentsCount = commentRepository.findAllCommentsByEventId(eventsId);
+//        Map<Long, Long> comments = new HashMap<>();
+//        for (Map.Entry<Long, Integer> entry : commentsCount.entrySet())
+//            comments.put(entry.getKey(), Long.valueOf(entry.getValue()));
 
         return events.stream()
                 .map((event) -> eventMapper.toEventShortDto(
                         event,
                         confirmedRequests.getOrDefault(event.getId(), 0L),
-                        views.getOrDefault(event.getId(), 0L)))
+                        views.getOrDefault(event.getId(), 0L),
+                        comments.getOrDefault(event.getId(), 0L)))
                 .collect(Collectors.toSet());
     }
 
