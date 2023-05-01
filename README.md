@@ -7,7 +7,7 @@
 Приложение состоит из основного сервиса, основной БД, сервиса статистики просмотров, БД для статистики.
 Каждая часть поднимается в отдельном docker-контейнере.
 
-[Ссылка на финальный PR](https://github.com/IgorTeleychuk/java-explore-with-me/pull/12)
+[Ссылка на репозиторий](https://github.com/IgorTeleychuk/java-explore-with-me)
 
 ### Стек:
 - Java 11 (Core, Collections, Optional, Stream)

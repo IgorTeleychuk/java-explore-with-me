@@ -316,12 +316,21 @@ public class EventServiceImpl implements EventService {
 
         Map<Long, Long> views = statsService.getViews(events);
         Map<Long, Long> confirmedRequests = statsService.getConfirmedRequests(events);
+        List<Long> eventsId = new ArrayList<>();
+
+        for (Event event : events) {
+            eventsId.add(event.getId());
+        }
         Map<Long, Long> comments = new HashMap<>();
 
         for (Event event : events) {
             comments.put(event.getId(), (long) commentRepository.findAllByEventId(event.getId(),
                     PageRequest.of(0, 10)).size());
         }
+//        Map<Long, Integer> commentsCount = commentRepository.findAllCommentsByEventId(eventsId);
+//        Map<Long, Long> comments = new HashMap<>();
+//        for (Map.Entry<Long, Integer> entry : commentsCount.entrySet())
+//            comments.put(entry.getKey(), Long.valueOf(entry.getValue()));
 
         return events.stream()
                 .map((event) -> eventMapper.toEventShortDto(
